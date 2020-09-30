@@ -1,0 +1,80 @@
+---
+title: "Motor_Trend_Regression_Model"
+author: "Bamidele Tella"
+date: "29/9/2020"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Executive Summary
+In this project, we take a look at a data set of a collection of cars, we aim to explore the relationship between a set of variables and miles per gallon (MPG) (outcome). At the completion of the project, we shall answer the following two questions:
+1. “Is an automatic or manual transmission better for MPG?”
+2. "what value(s) Quantifies the MPG difference between automatic and manual transmissions?"
+  
+# Loading Required Library
+First, the motor trend dataset was loaded into R, along with the required libraries for analysis.
+```{r message=FALSE, warning=FALSE}
+library(ggplot2)
+library(datasets)
+library(GGally)
+data("mtcars")
+```
+# Summary of Dataset
+Next, using R's head function, the top rows of the dataset was viewed to see how it appears, then the properties of each column with the str function was viewed next. Also we changed the transmission type into a  factor class of automatic(0) or manual(1).
+```{r}
+head(mtcars)
+str(mtcars)
+mtcars$am=as.factor(mtcars$am)
+```
+# Exploratory Data Analysis
+Next, a boxplot was visualized to understand the relationship between transmission type(am) and the miles per gallon(mpg).
+```{r}
+gfit1=ggplot(mtcars,aes(x=am,y=mpg,fill=am))
+gfit1=gfit1 + geom_boxplot()
+gfit1
+manual<-mean(mtcars[mtcars$am=="1",]$mpg)
+auto<-mean(mtcars[mtcars$am=="0",]$mpg)
+newTab<-data.frame(manual=manual,auto=auto)
+rownames(newTab)<-"Mean"
+newTab
+```
+## Is an automatic or manual transmission better for MPG?
+From the boxplot and the mean analysis above, it can be seen that the cars with manual transmission type(1), offer more average miles per gallon than the cars with automatic transmission type(0).
+
+# Model Selection
+The anova function was then used to determine the best model fit for the regression model. First, I generated a model of the miles per gallon(mpg) with all variables , then I generated a model with specific variables starting with transmission type(am),then I added the number of cylinder(cyl) as a confounding variable to the transmission type,then I added weight(wt), gross horsepower(hp), and displacement(disp) respectively in different model fitting.
+```{r}
+fit1=lm(mpg~.,data = mtcars)
+summary(fit1)
+fit2=lm(mpg~am,data = mtcars)
+fit3=lm(mpg~am+cyl,data = mtcars)
+fit4=lm(mpg~am+cyl+wt,data = mtcars)
+fit5=lm(mpg~am+cyl+hp+wt,data = mtcars)
+fit6=lm(mpg~am+cyl+hp+wt+disp,data = mtcars)
+anova(fit2,fit3,fit4,fit5,fit6,fit1)
+```
+From the variance analysis done, I deduced that model 5 and model 6 do not offer significant difference to the the change in miles per gallon hence we can assume that model 4 is the best model to quantify the effects of different variables on mile per gallon(mpg).
+
+# Summary of Selected Model
+After selection of the best model fit, I use the summary function to know the corresponding effect of each variable on miles per gallon(mpg).
+```{r}
+fit5=lm(mpg~am+cyl+hp+wt, data = mtcars)
+summary(fit5)
+```
+## Quantify the MPG difference between automatic and manual transmissions
+From the summary of the linear model fit, it can be estimated that cars with automatic transmission offer an average of 36.15 miles per gallon while cars with manual as transmission type offer 1.47 more miles per gallon than that of automatic cars which implies that manual cars offer 37.61 miles per gallon. We can also see from the value R-squared, that the model accounts for 85% of the factors that affect the miles per gallon.
+
+# Appendix 
+Here we take a visual look at the relationships of the properties of the model and also feature a pair plot.
+```{r}
+par(mfrow=c(2,2))
+plot(fit5)
+```
+
+```{r message=FALSE}
+ggpairs(mtcars,columns = c(1,2,4,6,9),aes(colour=am))
+```
